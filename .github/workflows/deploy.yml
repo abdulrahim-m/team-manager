@@ -1,0 +1,45 @@
+name: Deploy Bot
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25.5'
+
+    - name: Build Binary
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o bot-binary ./cmd/main.go
+
+    - name: Copy Files to Server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        source: "bot-binary"
+        target: "/home/${{ secrets.VM_USERNAME }}/bot/temp/"
+
+    - name: Deploy & Restart PM2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          mv ~/bot/temp/bot-binary ~/bot/m-bot
+          
+          chmod +x ~/bot/m-bot
+          
+          cd ~/bot
+          pm2 reload ecosystem.config.js --update-env
+          pm2 save

@@ -20,6 +20,8 @@ type PRData struct {
 	Number  int        `json:"number"`
 	User    GitHubUser `json:"user"` // The person who opened the PR
 	HTMLURL string     `json:"html_url"`
+	Base    BranchInfo `json:"base"`
+	Head    BranchInfo `json:"head"`
 }
 
 type GitHubUser struct {
@@ -28,4 +30,8 @@ type GitHubUser struct {
 
 type RepoData struct {
 	FullName string `json:"full_name"` // e.g., "Association/Website-Backend"
+}
+
+type BranchInfo struct {
+	Ref string `json:"ref"` // "main", "feature-login", etc.
 }
