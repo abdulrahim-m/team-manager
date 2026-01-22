@@ -4,16 +4,11 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/abdulrahim-m/team-manager/internal/config"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
 func botHandler(ctx context.Context, b *bot.Bot, update *models.Update, ch chan<- string) {
-	if string(update.Message.Contact.UserID) != config.GetManagerTeleID() {
-		return
-	}
-
 	switch update.Message.Text {
 	case "/start":
 		b.SendMessage(ctx, &bot.SendMessageParams{
