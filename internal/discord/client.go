@@ -2,24 +2,35 @@ package discord
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/abdulrahim-m/team-manager/internal/config"
 	"github.com/bwmarrin/discordgo"
 )
 
-func SendNotification(message string) {
-	dg, err := discordgo.New("Bot " + config.GetBotToken())
+func StartDiscordBot(ch <-chan string) {
+	dg, err := discordgo.New("Bot " + config.GetDiscBotToken())
 	if err != nil {
-		log.Println("Error creating Discord session:", err)
+		log.Fatal("Error creating Discord session:", err)
 		return
 	}
 
 	err = dg.Open()
 	if err != nil {
-		log.Println("Error creating Discord session:", err)
+		log.Fatal("Error creating Discord session:", err)
 		return
 	}
 	defer dg.Close()
 
-	dg.ChannelMessageSend(config.GetChannelID(), message)
+	b := &DiscordHandler{
+		DiscordSession: dg,
+		UserMap:        LoadMembers(),
+		ChannelID:      config.GetChannelID(),
+		GithubSecret:   config.GetGithubSecret(),
+		ManagerID:      config.GetManagerDiscID(),
+	}
+
+	http.HandleFunc("/webhook", b.HandleWebhook)
+
+	b.HangleTelegram(ch)
 }

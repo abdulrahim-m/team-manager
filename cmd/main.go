@@ -5,46 +5,42 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/abdulrahim-m/team-manager/internal/bot"
 	"github.com/abdulrahim-m/team-manager/internal/config"
-	"github.com/bwmarrin/discordgo"
+	"github.com/abdulrahim-m/team-manager/internal/discord"
+	"github.com/abdulrahim-m/team-manager/internal/telegram"
+	"github.com/lpernett/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 	config.LoadConfig()
 
-	dg, err := discordgo.New("Bot " + config.GetBotToken())
-	if err != nil {
-		log.Fatal(err)
-	}
-	dg.Open()
-	defer dg.Close()
+	teleToDiscChannel := make(chan string, 10)
+	// discToTele := make(chan string, 10)
 
-	myBot := &bot.BotHandler{
-		DiscordSession: dg,
-		UserMap:        bot.LoadMembers(),
-		ChannelID:      config.GetChannelID(),
-		GithubSecret:   config.GetGithubSecret(),
-		ManagerID:      config.GetManagerID(),
-	}
-	http.HandleFunc("/webhook", myBot.HandleWebhook)
+	go discord.StartDiscordBot(teleToDiscChannel)
+	go telegram.StartTelegramBot(teleToDiscChannel)
+
 	printLogo()
 	log.Println("Server started on :53053...")
-	err = http.ListenAndServe(":53053", nil)
+	err := http.ListenAndServe(":53053", nil)
 	log.Fatal(err)
+
+	select {}
 }
 
 func printLogo() {
 	fmt.Println(`
-    ____________________     _________     _______ 
-   /\                   \   /\        \   /       \
-  /  \_______     _______\ /  \        \ /\        \
-  \  /      /\    \      / \   \        \_/         \  
-   \/______/  \    \____/   \   \        _______     \    
-           \   \    \        \   \      /      /\     \
-            \   \    \        \   \     \_____/  \     \
-             \   \    \        \   \     \    \   \     \
-              \   \____\        \   \____/     \   \_____\
-               \  /    /         \  /   /       \  /     /
-                \/____/           \/___/         \/_____/`)
+   /\\\\\\\\\\\\\\\\\     /\\\\                 /\\\\
+   \/\\\\////////////\\\\ \/\\\\\\\           /\\\\\\\
+    \/\\\\          \/\\\\ \/\\\\//\\\      /\\\///\\\\
+     \/\\\\\\\\\\\\\\\\///  \/\\\\\///\\\ /\\\//  \/\\\\
+      \/\\\\///////////      \/\\\\  \///\\\//     \/\\\\
+       \/\\\\                 \/\\\\    \///        \/\\\\
+        \/\\\\                 \/\\\\                \/\\\\
+         \/\\\\                 \/\\\\                \/\\\\
+          \/\\\\                 \/\\\\                \/\\\\
+           \/\\\\                 \/\\\\                \/\\\\
+            \////                  \////                 \////
+		`)
 }

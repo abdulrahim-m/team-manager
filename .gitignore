@@ -9,6 +9,7 @@
 *.dylib
 main
 data
+logs
 
 # Test binary, built with `go test -c`
 *.test

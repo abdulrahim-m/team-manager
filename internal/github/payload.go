@@ -2,11 +2,16 @@ package github
 
 // ReviewPayload represents the incoming GitHub Webhook data
 type ReviewPayload struct {
-	Action      string     `json:"action"` // e.g., "submitted"
-	Review      ReviewData `json:"review"`
-	PullRequest PRData     `json:"pull_request"`
-	Repository  RepoData   `json:"repository"`
-	Sender      GitHubUser `json:"sender"` // The person who reviewed
+	Action string     `json:"action"` // e.g., "submitted"
+	Review ReviewData `json:"review"`
+	// Pull requests
+	PullRequest PRData `json:"pull_request"`
+	// Delete
+	RefType    string `json:"ref_type"`     // Can be either 'tag' or 'branch'
+	PusherType string `json:"pusher_type "` // Can be either 'user' or a deploy key
+
+	Repository RepoData   `json:"repository"`
+	Sender     GitHubUser `json:"sender"` // The person who reviewed
 }
 
 type ReviewData struct {
